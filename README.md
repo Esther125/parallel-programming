@@ -7,6 +7,5 @@ This repository contains the programming assignments for **Parallel Programming*
 |------------|------------------|--------------------------------------|
 | I          | SIMD Programming | [HackMD](https://hackmd.io/@liyichen125/ry5USxynxe/edit)      |
 
----
 
 More assignments will be added as the course progresses.
