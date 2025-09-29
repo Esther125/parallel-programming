@@ -1,0 +1,15 @@
+# build artifacts
+*.o
+*.s
+myexp
+*.out
+*.err
+slurm-*.out
+slurm-*.err
+
+# editor/OS
+.vscode/
+.DS_Store
+
+# submissions
+HW*_*.zip
