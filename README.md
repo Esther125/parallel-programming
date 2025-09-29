@@ -3,9 +3,10 @@ This repository contains the programming assignments for **Parallel Programming*
 
 ## Assignments
 
-| Assignment | Title             | Report Link                          |
-|------------|------------------|--------------------------------------|
-| I          | SIMD Programming | [HackMD](https://hackmd.io/@liyichen125/ry5USxynxe/edit)      |
+
+| Assignment | Title             |
+|------------|------------------|
+| HW1          | SIMD Programming |
 
 
 More assignments will be added as the course progresses.
