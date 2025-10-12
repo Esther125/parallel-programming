@@ -6,11 +6,11 @@
 #define MIN -1.0
 
 int main(int argc, char** argv){
-    if (argc != 3){
+    if (argc != 2){
         fprintf(stderr, "The correct usage is %s <num_threads> <num_tosses>\n", argv[0]);
         return 1;
     }
-    long long int number_of_tosses = atoll(argv[2]);
+    long long int number_of_tosses = atoll(argv[1]);
     long long int number_in_circle = 0;
     long double pi_estimate;
 
