@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <thread>
+#include <chrono>
 
 struct WorkerArgs
 {
@@ -41,7 +42,26 @@ void worker_thread_start(WorkerArgs *const args)
     // Of course, you can copy mandelbrot_serial() to this file and
     // modify it to pursue a better performance.
 
-    printf("Hello world from thread %d\n", args->threadId);
+    const int width = args->width;
+    const int height = args->height;
+    const int thread_num = args->numThreads;
+    const int thread_id = args->threadId;
+
+    // Thread i do rows i, i+T, i+2T, ...
+    for (int row = thread_id; row < height; row += thread_num) {
+        mandelbrot_serial(
+            args->x0,
+            args->y0,
+            args->x1,
+            args->y1,
+            width,
+            height,
+            row,
+            1,
+            args->maxIterations,
+            args->output
+        );
+    };
 }
 
 //
