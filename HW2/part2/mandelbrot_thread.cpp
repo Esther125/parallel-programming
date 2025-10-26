@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <thread>
-#include <chrono>
 
 struct WorkerArgs
 {
@@ -14,18 +13,40 @@ struct WorkerArgs
     int *output;
     int threadId;
     int numThreads;
+    float* x_pos;
+    float* y_pos;
 };
 
-extern void mandelbrot_serial(float x0,
-                              float y0,
-                              float x1,
-                              float y1,
-                              int width,
-                              int height,
-                              int start_row,
-                              int num_rows,
-                              int max_iterations,
-                              int *output);
+static inline int mandel(float c_re, float c_im, int count)
+{
+  float z_re = c_re, z_im = c_im;
+  int i;
+  for (i = 0; i < count; ++i)
+  {
+    if (z_re * z_re + z_im * z_im > 4.f)
+        return i;
+    float new_re = z_re * z_re - z_im * z_im;
+    float new_im = 2.f * z_re * z_im;
+    z_re = c_re + new_re;
+    z_im = c_im + new_im;
+  }
+  return i;
+}
+
+static inline void mandelbrotRow(
+    float x0, float y0, float x1, float y1,
+    float* xPos, float* yPos,
+    int width, int startRow,
+    int maxIterations,
+    int output[])
+{
+  int index = startRow * width;
+  for (int i = 0; i < width; ++i)
+  {
+    output[index] = mandel(xPos[i], yPos[startRow], maxIterations);
+    index++;
+  }
+}
 
 //
 // worker_thread_start --
@@ -42,22 +63,22 @@ void worker_thread_start(WorkerArgs *const args)
     // Of course, you can copy mandelbrot_serial() to this file and
     // modify it to pursue a better performance.
 
-    const int width = args->width;
-    const int height = args->height;
-    const int thread_num = args->numThreads;
-    const int thread_id = args->threadId;
+    const int img_width = args->width;
+    const int img_height = args->height;
+    const int num_threads = args->numThreads;
+    const int tid = args->threadId;
 
     // Thread i do rows i, i+T, i+2T, ...
-    for (int row = thread_id; row < height; row += thread_num) {
-        mandelbrot_serial(
+    for (int row = tid; row < img_height; row += num_threads) {
+        mandelbrotRow(
             args->x0,
             args->y0,
             args->x1,
             args->y1,
-            width,
-            height,
+            args->x_pos,
+            args->y_pos,
+            img_width,
             row,
-            1,
             args->maxIterations,
             args->output
         );
@@ -90,12 +111,16 @@ void mandelbrot_thread(int num_threads,
     // Creates thread objects that do not yet represent a thread.
     std::array<std::thread, max_threads> workers;
     std::array<WorkerArgs, max_threads> args = {};
+    // Precompute coordinate arrays
+    const float dx = (x1 - x0) / (float)width;
+    const float dy = (y1 - y0) / (float)height;
+    float* xPos = new float[width];
+    float* yPos = new float[height];
+    for (int i = 0; i < width; ++i) xPos[i] = x0 + (float)i * dx;
+    for (int j = 0; j < height; ++j) yPos[j] = y0 + (float)j * dy;
 
     for (int i = 0; i < num_threads; i++)
     {
-        // TODO FOR PP STUDENTS: You may or may not wish to modify
-        // the per-thread arguments here.  The code below copies the
-        // same arguments for each thread
         args[i].x0 = x0;
         args[i].y0 = y0;
         args[i].x1 = x1;
@@ -105,8 +130,9 @@ void mandelbrot_thread(int num_threads,
         args[i].maxIterations = max_iterations;
         args[i].numThreads = num_threads;
         args[i].output = output;
-
         args[i].threadId = i;
+        args[i].x_pos = xPos;
+        args[i].y_pos = yPos;
     }
 
     // Spawn the worker threads.  Note that only numThreads-1 std::threads
@@ -124,4 +150,6 @@ void mandelbrot_thread(int num_threads,
     {
         workers[i].join();
     }
+    delete[] xPos;
+    delete[] yPos;
 }
